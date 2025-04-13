@@ -16,10 +16,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize premium calculator cards
     initializePremiumCards();
 });
-
-// Conversion rates
-const conversionOptions = {
-    length: {
+// Conversion functionality
+function initializeConverter() {
+    const inputField = document.querySelector('.converter-input input');
+    const outputField = document.querySelector('.converter-output input');
+    const inputSelect = document.querySelector('.converter-input select');
+    const outputSelect = document.querySelector('.converter-output select');
+    const formulaText = document.querySelector('.conversion-formula p');
+    
+    // Conversion rates for length units (relative to meters)
+    const lengthConversions = {
         meter: 1,
         kilometer: 0.001,
         centimeter: 100,
@@ -28,104 +34,29 @@ const conversionOptions = {
         yard: 1.09361,
         foot: 3.28084,
         inch: 39.3701
-    },
-    weight: {
-        gram: 1,
-        kilogram: 0.001,
-        pound: 0.00220462,
-        ounce: 0.035274,
-        ton: 0.000001
-    },
-    volume: {
-        liter: 1,
-        milliliter: 1000,
-        gallon: 0.264172,
-        cup: 4.22675,
-        pint: 2.11338
-    },
-    temperature: {
-        celsius: (val) => val,
-        fahrenheit: (val) => (val - 32) * 5 / 9,
-        kelvin: (val) => val - 273.15
-    },
-    area: {
-        squareMeter: 1,
-        squareKilometer: 0.000001,
-        hectare: 0.0001,
-        acre: 0.000247105,
-        squareFoot: 10.7639,
-        squareYard: 1.19599
-    },
-    speed: {
-        meterPerSecond: 1,
-        kilometerPerHour: 3.6,
-        milePerHour: 2.23694,
-        feetPerSecond: 3.28084
-    }
-};
-
-// Conversion function to convert between units
-function convertValue(value, inputUnit, outputUnit) {
-    const category = getCategory(inputUnit);
-    let baseValue;
-
-    // For temperature conversion
-    if (category === 'temperature') {
-        baseValue = conversionOptions.temperature[inputUnit](value); // Convert to Celsius
-        return convertTemperature(baseValue, outputUnit); // Convert from Celsius to the desired unit
-    }
-
-    // Convert input value to base
-    baseValue = value / conversionOptions[category][inputUnit];
-
-    // Convert base value to output unit
-    return baseValue * conversionOptions[category][outputUnit];
-}
-
-// Get category based on the input unit
-function getCategory(unit) {
-    for (const category in conversionOptions) {
-        if (conversionOptions[category][unit]) {
-            return category;
-        }
-    }
-    return null;
-}
-
-// Handle temperature conversion
-function convertTemperature(value, outputUnit) {
-    if (outputUnit === 'celsius') {
-        return value; // Already in Celsius
-    } else if (outputUnit === 'fahrenheit') {
-        return (value * 9 / 5) + 32; // Convert to Fahrenheit
-    } else if (outputUnit === 'kelvin') {
-        return value + 273.15; // Convert to Kelvin
-    }
-}
-
-// Conversion functionality
-function initializeConverter() {
-    const inputField = document.querySelector('.converter-input input');
-    const outputField = document.querySelector('.converter-output input');
-    const inputSelect = document.querySelector('.converter-input select');
-    const outputSelect = document.querySelector('.converter-output select');
-    const formulaText = document.querySelector('.conversion-formula p');
-
+    };
+    
     // Function to update the conversion
     function updateConversion() {
         const inputValue = parseFloat(inputField.value);
         const inputUnit = inputSelect.value;
         const outputUnit = outputSelect.value;
-
+        
         if (!isNaN(inputValue)) {
-            const convertedValue = convertValue(inputValue, inputUnit, outputUnit);
-            outputField.value = convertedValue.toFixed(5);
-
-            // Display formula
-            formulaText.textContent = `1 ${inputUnit} = ${(conversionOptions[getCategory(inputUnit)][outputUnit] / conversionOptions[getCategory(inputUnit)][inputUnit]).toFixed(5)} ${outputUnit}`;
+            // Convert input to base unit (meters)
+            const baseValue = inputValue / lengthConversions[inputUnit];
+            
+            // Convert base unit to output unit
+            const outputValue = baseValue * lengthConversions[outputUnit];
+            
+            // Update output field
+            outputField.value = outputValue.toFixed(5);
+            
+            // Update formula text
+            formulaText.textContent = `Formula: 1 ${inputUnit} = ${(lengthConversions[outputUnit] / lengthConversions[inputUnit]).toFixed(5)} ${outputUnit}`;
         }
     }
-
+    
     // Add event listeners
     inputField.addEventListener('input', updateConversion);
     inputSelect.addEventListener('change', updateConversion);
@@ -147,27 +78,13 @@ function initializeCategories() {
             // Add active class to clicked item
             this.classList.add('active');
             
-            // Update conversion options based on selected category
-            updateConversionOptions(this.dataset.category);
+            // In a real implementation, this would load the appropriate conversion options
+            // For demo purposes, we'll just show an alert
+            if (this.dataset.category !== 'length') {
+                alert(`${this.textContent} conversions will be available in the full version.`);
+            }
         });
     });
-}
-
-// Function to update conversion options
-function updateConversionOptions(category) {
-    const inputSelect = document.querySelector('.converter-input select');
-    const outputSelect = document.querySelector('.converter-output select');
-
-    inputSelect.innerHTML = '';
-    outputSelect.innerHTML = '';
-
-    for (const unit in conversionOptions[category]) {
-        inputSelect.innerHTML += `<option value="${unit}">${unit}</option>`;
-        outputSelect.innerHTML += `<option value="${unit}">${unit}</option>`;
-    }
-
-    // Call updateConversion to perform the initial conversion
-    updateConversion();
 }
 
 // Swap button functionality
@@ -186,7 +103,8 @@ function initializeSwapButton() {
         outputSelect.value = inputValue;
         
         // Trigger conversion update
-        updateConversion();
+        const event = new Event('change');
+        inputSelect.dispatchEvent(event);
     });
 }
 
@@ -239,7 +157,8 @@ document.querySelector('.search-box button').addEventListener('click', function(
     const searchTerm = searchInput.value.trim().toLowerCase();
     
     if (searchTerm) {
-        // Implement search logic here if required
+        // In a real implementation, this would search through available conversions
+        // For demo purposes, we'll just show an alert
         alert(`Searching for: ${searchTerm}`);
         searchInput.value = '';
     }
@@ -250,7 +169,8 @@ document.querySelectorAll('.premium-btn, .btn').forEach(button => {
     button.addEventListener('click', function(e) {
         e.preventDefault();
         
-        // Show premium signup alert
+        // In a real implementation, this would open a signup/payment page
+        // For demo purposes, we'll just show an alert
         alert('This would open the premium signup page in the full version.');
     });
 });
@@ -298,3 +218,9 @@ document.querySelectorAll('nav a').forEach(link => {
         }
     });
 });
+// At the end of your existing script.js file
+initializeCategories(); // Make sure to call the new category initialization
+initializeTestimonialSlider();
+initializeSearchFunctionality();
+initializeNewsletter();
+initializeMobileMenu();
