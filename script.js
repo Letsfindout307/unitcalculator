@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Initialize premium calculator cards
     initializePremiumCards();
 });
-
 // Conversion functionality
 function initializeConverter() {
     const inputField = document.querySelector('.converter-input input');
@@ -219,3 +218,9 @@ document.querySelectorAll('nav a').forEach(link => {
         }
     });
 });
+// At the end of your existing script.js file
+initializeCategories(); // Make sure to call the new category initialization
+initializeTestimonialSlider();
+initializeSearchFunctionality();
+initializeNewsletter();
+initializeMobileMenu();
